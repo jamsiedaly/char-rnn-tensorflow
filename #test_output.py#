@@ -1,0 +1,11 @@
+output_text_directory = 'Experiment Outcomes/'+ args.artist_name + '/' + str(args.n);
+if not os.path.exists(output_text_directory):
+os.makedirs(output_text_directory)
+file_name = output_text_directory + '/' + args.details + '.txt'
+output_file = open(file_name, 'w+')
+output_file.write(generated_text)
+ipa_file_name = file_name + '.ipa'
+ipa_file = open(ipa_file_name, 'w+')
+ipa_text = phonetics.get_phonetic_transcription(generated_text.decode('utf-8'))
+ipa_file.write(ipa_text)
+spellyzer.get_spelling_error_rate(generated_text)

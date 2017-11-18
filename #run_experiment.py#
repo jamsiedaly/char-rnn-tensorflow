@@ -20,7 +20,7 @@ def main():
                         help='model directory to store checkpointed models')
     parser.add_argument('-n', type=int, default=500,
                         help='number of characters to sample')
-    parser.add_argument('--prime', type=text_type, default=' ',
+    parser.add_argument('--prime', type=text_type, default=u' ',
                         help='prime text')
     parser.add_argument('--sample', type=int, default=1,
                         help='0 to use max at each timestep, 1 to sample at '
@@ -29,30 +29,32 @@ def main():
                         help='A file to save the outputed text in')
     parser.add_argument('--details', type=str, default='_not_supplied_',
                         help='A file to save the outputed text in')
+    parser.add_argument('--sample_size', type=str, default='1000',
+                        help='A file to save the outputed text in')
 	
 
     args = parser.parse_args()
-    sample(args.save_dir, args.n, args.prime, args.sample, args.artist_name, args.details)
+    sample(args)
 
 
-def sample(save_dir, n, prime, sample, artist_name, details):
-    with open(os.path.join(save_dir, 'config.pkl'), 'rb') as f:
+def sample(args):
+    with open(os.path.join(args.save_dir, 'config.pkl'), 'rb') as f:
         saved_args = cPickle.load(f)
-    with open(os.path.join(save_dir, 'chars_vocab.pkl'), 'rb') as f:
+    with open(os.path.join(args.save_dir, 'chars_vocab.pkl'), 'rb') as f:
         chars, vocab = cPickle.load(f)
     model = Model(saved_args, training=False)
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
         saver = tf.train.Saver(tf.global_variables())
-        ckpt = tf.train.get_checkpoint_state(save_dir)
+        ckpt = tf.train.get_checkpoint_state(args.save_dir)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            generated_text = model.sample(sess, chars, vocab, n, prime, sample).encode('utf-8')
+            generated_text = model.sample(sess, chars, vocab, args.n, args.prime, args.sample).encode('utf-8')
             print(generated_text)
-            output_text_directory = 'Experiment Outcomes/'+ artist_name + '/' + str(n);
+            output_text_directory = 'Experiment Outcomes/'+ args.artist_name + '/' + str(args.n);
             if not os.path.exists(output_text_directory):
                 os.makedirs(output_text_directory)
-            file_name = output_text_directory + '/' + details + '.txt'
+            file_name = output_text_directory + '/' + args.details + '.txt'
             output_file = open(file_name, 'w+')
             output_file.write(generated_text)
             ipa_file_name = file_name + '.ipa'
